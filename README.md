@@ -8,21 +8,30 @@ Natural Language Database Interface via MCP (Model Context Protocol)
 EchoDB/
 ├── src/
 │   ├── __init__.py
-│   ├── main.py                 # MCP server entry point
-│   ├── tools/                  # MCP tools directory
+│   ├── main.py                    # Main MCP server entry point
+│   ├── main_prompts.py            # Alternative implementation using standard MCP server
+│   │
+│   ├── prompts/                   # MCP prompts for tabular data formatting
+│   │   ├── __init__.py           # Module exports
+│   │   ├── format_table.py       # Prompt templates (format_table, format_summary_table, format_comparison_table)
+│   │   └── handlers.py           # Prompt handlers and MCP protocol integration
+│   │
+│   ├── tools/                     # MCP tools for database operations
 │   │   ├── __init__.py
-│   │   ├── connect_database.py # Database connection tool
-│   │   ├── get_schema.py       # Schema retrieval tool
-│   │   ├── execute_query.py    # Query execution tool
-│   │   └── get_table_sample.py # Table sampling tool
-│   └── utils/                  # Utility modules
+│   │   ├── connect_database.py   # Database connection tool
+│   │   ├── execute_query.py      # SQL query execution tool
+│   │   ├── get_schema.py         # Schema introspection tool
+│   │   └── get_table_sample.py   # Table sampling tool
+│   │
+│   └── utils/                     # Utility functions
 │       ├── __init__.py
-│       └── db.py               # Database connection utilities
-├── mcp_config.json             # MCP server configuration
-├── pyproject.toml              # Project dependencies and metadata
-├── uv.lock                     # Dependency lock file
-├── PROJECT_PLAN.md             # Project planning document
-└── README.md                   # This file
+│       └── db.py                 # Database connection and utility functions
+│
+├── mcp_config.json               # MCP server configuration
+├── pyproject.toml                 # Project dependencies
+├── README.md                     # Main project documentation
+├── PROMPTS_README.md             # Prompts feature documentation
+└── PROJECT_PLAN.md               # Project planning document
 ```
 
 ## Overview
@@ -41,6 +50,16 @@ EchoDB is an MCP server that provides natural language database querying capabil
 2. **`get_schema`**: Retrieve database schema (tables, columns, keys, indexes)
 3. **`execute_query`**: Execute read-only SELECT queries
 4. **`get_table_sample`**: Get sample rows from a table
+
+### MCP Prompts
+
+EchoDB includes MCP prompts for formatting query results as well-structured markdown tables:
+
+1. **`format_table`**: Format query results as a markdown table with proper alignment
+2. **`format_summary_table`**: Create summary tables with statistics and aggregations
+3. **`format_comparison_table`**: Create comparison tables showing differences between data sets
+
+See [PROMPTS_README.md](PROMPTS_README.md) for detailed usage instructions.
 
 ## Installation
 
@@ -78,7 +97,17 @@ Once configured, you can interact with your database through Claude Desktop usin
 - Connect to your database
 - Understand the schema
 - Generate and execute SQL queries
-- Format and present results
+- Format and present results as markdown tables
+
+### Example Queries
+
+```
+"Show me the top 10 customers by total sales"
+"What are the average prices by product category?"
+"Compare sales between Q1 and Q2"
+```
+
+Results are automatically formatted as well-structured markdown tables for easy readability.
 
 ## Features
 
@@ -87,6 +116,15 @@ Once configured, you can interact with your database through Claude Desktop usin
 - 🤖 **AI-Powered**: Natural language query interface
 - 📊 **Schema-Aware**: Automatic schema introspection
 - 🔍 **Safe**: Only SELECT statements allowed
+- 📋 **Table Formatting**: MCP prompts for beautiful markdown tables
+- 🎨 **Flexible Presentation**: Summary tables, comparison tables, and more
+
+## Documentation
+
+- **[PROMPTS_README.md](PROMPTS_README.md)**: Detailed guide to table formatting prompts
+- **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**: Solutions for common table formatting issues
+- **[PROJECT_PLAN.md](PROJECT_PLAN.md)**: Project architecture and planning
+- **[CODE_ORGANIZATION.md](CODE_ORGANIZATION.md)**: Code structure and organization
 
 
 
