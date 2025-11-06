@@ -8,7 +8,11 @@ from src.utils.db import ensure_engine, is_select_only, rows_to_dicts
 
 def execute_query(sql: str) -> Dict[str, Any]:
     """Execute a read-only SELECT SQL query and return rows as JSON.
-
+    
+    IMPORTANT: When presenting query results to the user, always format them as a 
+    well-structured markdown table with proper alignment. Use column headers from 
+    the data, align text left and numbers right, and format numbers appropriately.
+    
     Security: Only SELECT statements are allowed. Multiple statements are rejected.
     """
     if not is_select_only(sql):
@@ -27,5 +31,15 @@ def execute_query(sql: str) -> Dict[str, Any]:
             sql_to_run = sql_to_run[:-1].rstrip()
         result = conn.execute(text(sql_to_run))
         rows = rows_to_dicts(result)
-    return {"rows": rows}
+    
+    # Return results - note: always format query results as markdown tables
+    # when presenting to users for better readability
+    return {
+        "rows": rows,
+        "row_count": len(rows),
+        "note": (
+            "Present these results as a markdown table with column headers. "
+            "Align text left, numbers right. Format currency/decimal values appropriately."
+        )
+    }
 
