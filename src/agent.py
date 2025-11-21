@@ -137,7 +137,15 @@ class Agent:
                 if message.content:
                     content = message.content
                     if isinstance(content, list):
-                        content = "".join(str(part) for part in content)
+                        final_content = ""
+                        for part in content:
+                            if isinstance(part, dict) and "text" in part:
+                                final_content += part["text"]
+                            elif isinstance(part, str):
+                                final_content += part
+                            else:
+                                final_content += str(part)
+                        content = final_content
                     yield {"type": "content", "content": content}
                 
                 if message.tool_calls:
