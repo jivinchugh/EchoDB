@@ -3,7 +3,8 @@ import uuid
 import os
 from typing import Literal, Annotated, Sequence, TypedDict, Union, List
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage, SystemMessage
-from langchain_openai import ChatOpenAI
+from langchain_litellm import ChatLiteLLMRouter, ChatLiteLLM
+from litellm import Router
 from langgraph.graph import StateGraph, END, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
@@ -34,13 +35,13 @@ class Agent:
             raise ValueError("OPENROUTER_API_KEY not found in environment variables")
 
         # Initialize LLM based on provider
-        # OpenRouter uses OpenAI-compatible API for all models
-        self.llm = ChatOpenAI(
-            api_key=api_key, 
-            base_url="https://openrouter.ai/api/v1",
-            model=model_name,
+        self.llm = ChatLiteLLM(
+            openrouter_api_key=api_key, 
+            api_base="https://openrouter.ai/api/v1",
+            model="openrouter/" + model_name,
             temperature=0,
             max_retries=5,
+            streaming=True
         )
 
         # Bind tools to LLM

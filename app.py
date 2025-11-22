@@ -38,9 +38,9 @@ with st.sidebar:
     )
 
     PROVIDER_MODELS = {
-        "OpenAI": ["openai/gpt-4o", "openai/gpt-4o-mini", "openai/gpt-4.1", "openai/gpt-5.1"],
-        "Gemini": ["google/gemini-2.5-flash", "google/gemini-3-pro-preview", "google/gemini-2.5-pro"],
-        "Anthropic": ["anthropic/claude-haiku-4.5", "anthropic/claude-3.7-sonnet", "anthropic/claude-3.5-sonnet"]
+        "OpenAI": ["gpt-5.1", "gpt-5-mini", "gpt-4.1", "gpt-4o", "gpt-4o-mini"],
+        "Gemini": [ "gemini-3-pro-preview", "gemini-2.5-pro", "gemini-2.5-flash",],
+        "Anthropic": ["claude-4.5-sonnet", "claude-3.7-sonnet", "claude-3.5-sonnet", "claude-haiku-4.5"]
     }
     
     model_name = st.selectbox(
@@ -63,7 +63,7 @@ with st.sidebar:
                         st.error(f"Connection failed: {error}")
                     else:
                         try:
-                            st.session_state.agent = Agent(provider=provider, engine=engine, model_name=model_name)
+                            st.session_state.agent = Agent(provider=provider, engine=engine, model_name=provider.lower() + "/" + model_name)
                             st.session_state.messages = [] # Clear chat on new connection
                             st.session_state.follow_up_count = 0
                             st.rerun()
