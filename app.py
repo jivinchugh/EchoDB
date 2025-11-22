@@ -38,9 +38,9 @@ with st.sidebar:
     )
 
     PROVIDER_MODELS = {
-        "OpenAI": ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-5-mini"],
-        "Gemini": ["gemini-2.5-flash", "gemini-2.5-flash-lite", "gemini-2.0-flash"],
-        "Anthropic": ["claude-haiku-4.5", "claude-3-5-sonnet-20240620", "claude-3-haiku-20240307"]
+        "OpenAI": ["openai/gpt-4o", "openai/gpt-4o-mini", "openai/gpt-4.1", "openai/gpt-5.1"],
+        "Gemini": ["google/gemini-2.5-flash", "google/gemini-3-pro-preview", "google/gemini-2.5-pro"],
+        "Anthropic": ["anthropic/claude-haiku-4.5", "anthropic/claude-3.7-sonnet", "anthropic/claude-3.5-sonnet"]
     }
     
     model_name = st.selectbox(
@@ -48,17 +48,13 @@ with st.sidebar:
         PROVIDER_MODELS.get(provider, []),
         disabled=is_connected
     )
-    
-    api_key_label = f"{provider} API Key"
-    api_key = st.text_input(api_key_label, type="password", disabled=is_connected)
+
     
     db_uri = st.text_input("Database URI", value="sqlite:///test.db", disabled=is_connected)
     
     if not is_connected:
         if st.button("Connect"):
-            if not api_key:
-                st.error(f"Please provide an {provider} API Key.")
-            elif not db_uri:
+            if not db_uri:
                 st.error("Please provide a Database URI.")
             else:
                 with st.spinner("Connecting..."):
@@ -67,7 +63,7 @@ with st.sidebar:
                         st.error(f"Connection failed: {error}")
                     else:
                         try:
-                            st.session_state.agent = Agent(provider=provider, api_key=api_key, engine=engine, model_name=model_name)
+                            st.session_state.agent = Agent(provider=provider, engine=engine, model_name=model_name)
                             st.session_state.messages = [] # Clear chat on new connection
                             st.session_state.follow_up_count = 0
                             st.rerun()
@@ -75,18 +71,21 @@ with st.sidebar:
                             st.error(f"Failed to initialize agent: {e}")
 
     if is_connected:
-        st.success("✅ Connected to database")
-        st.info(f"Using {provider}")
+        st.success("✅ Connected to DB!")
         if st.button("Disconnect"):
             st.session_state.agent = None
             st.session_state.messages = []
             st.session_state.follow_up_count = 0
+            if "db_schema" in st.session_state:
+                del st.session_state.db_schema
             st.rerun()
 
     st.divider()
     if st.button("Clear Chat"):
         st.session_state.messages = []
         st.session_state.follow_up_count = 0
+        if "db_schema" in st.session_state:
+            del st.session_state.db_schema
         st.rerun()
 
 

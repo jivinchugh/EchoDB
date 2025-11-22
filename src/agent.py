@@ -1,10 +1,9 @@
 import json
 import uuid
+import os
 from typing import Literal, Annotated, Sequence, TypedDict, Union, List
 from langchain_core.messages import BaseMessage, HumanMessage, AIMessage, ToolMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_anthropic import ChatAnthropic
 from langgraph.graph import StateGraph, END, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
@@ -12,12 +11,14 @@ from src.tools.get_schema import get_get_schema_tool
 from src.tools.execute_query import get_execute_query_tool
 from src.tools.get_table_sample import get_get_table_sample_tool
 from src.prompts.system import get_system_prompt
+from dotenv import load_dotenv
+load_dotenv()
 
 class AgentState(TypedDict):
     messages: Annotated[List[BaseMessage], add_messages]
 
 class Agent:
-    def __init__(self, provider: str, api_key: str, engine, model_name: str = None):
+    def __init__(self, provider: str, engine, model_name: str = None):
         self.engine = engine
         self.provider = provider
         
@@ -28,30 +29,19 @@ class Agent:
             get_get_table_sample_tool(engine)
         ]
 
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key:
+            raise ValueError("OPENROUTER_API_KEY not found in environment variables")
+
         # Initialize LLM based on provider
-        if provider == "OpenAI":
-            self.llm = ChatOpenAI(
-                api_key=api_key, 
-                model=model_name or "gpt-4o",
-                temperature=0,
-                max_retries=5
-            )
-        elif provider == "Gemini":
-            self.llm = ChatGoogleGenerativeAI(
-                google_api_key=api_key, 
-                model=model_name or "gemini-2.5-flash-lite",
-                temperature=0,
-                max_retries=5
-            )
-        elif provider == "Anthropic":
-            self.llm = ChatAnthropic(
-                api_key=api_key, 
-                model=model_name or "claude-3-haiku-20240307",
-                temperature=0,
-                max_retries=5
-            )
-        else:
-            raise ValueError(f"Unsupported provider: {provider}")
+        # OpenRouter uses OpenAI-compatible API for all models
+        self.llm = ChatOpenAI(
+            api_key=api_key, 
+            base_url="https://openrouter.ai/api/v1",
+            model=model_name,
+            temperature=0,
+            max_retries=5,
+        )
 
         # Bind tools to LLM
         self.llm_with_tools = self.llm.bind_tools(self.tools)
