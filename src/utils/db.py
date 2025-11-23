@@ -1,12 +1,20 @@
 import sqlalchemy
 from sqlalchemy import create_engine, inspect, text
+from sqlalchemy.engine import Engine
 import pandas as pd
 import re
+from src.config import MAX_ROWS
 
-MAX_ROWS = 100
 
-def get_db_connection(uri):
-    """Establishes and tests a database connection."""
+def get_db_connection(uri: str) -> tuple[Engine | None, str | None]:
+    """Establishes and tests a database connection.
+    
+    Args:
+        uri: SQLAlchemy database URI
+        
+    Returns:
+        Tuple of (engine, error). If successful, error is None. If failed, engine is None.
+    """
     try:
         engine = create_engine(uri)
         with engine.connect() as conn:
@@ -15,8 +23,16 @@ def get_db_connection(uri):
     except Exception as e:
         return None, str(e)
 
-def get_schema(engine):
-    """Retrieves the database schema in a structured JSON-like format."""
+
+def get_schema(engine: Engine) -> dict:
+    """Retrieves the database schema in a structured JSON-like format.
+    
+    Args:
+        engine: SQLAlchemy engine instance
+        
+    Returns:
+        Dictionary mapping table names to their schema information
+    """
     inspector = inspect(engine)
     schema_info = {}
     
@@ -59,8 +75,16 @@ def get_schema(engine):
         
     return schema_info
 
-def is_select_only(query):
-    """Validates that the query is a read-only SELECT statement."""
+
+def is_select_only(query: str) -> tuple[bool, str]:
+    """Validates that the query is a read-only SELECT statement.
+    
+    Args:
+        query: SQL query string to validate
+        
+    Returns:
+        Tuple of (is_valid, error_message). If valid, error_message is empty string.
+    """
     query = query.strip().lower()
     
     # Basic keyword check
@@ -76,8 +100,17 @@ def is_select_only(query):
         
     return True, ""
 
-def run_query(engine, query):
-    """Executes a read-only SQL query."""
+
+def run_query(engine: Engine, query: str) -> tuple[pd.DataFrame | None, str | None]:
+    """Executes a read-only SQL query.
+    
+    Args:
+        engine: SQLAlchemy engine instance
+        query: SQL query to execute
+        
+    Returns:
+        Tuple of (dataframe, error). If successful, error is None. If failed, dataframe is None.
+    """
     is_valid, error_msg = is_select_only(query)
     if not is_valid:
         return None, f"Error: {error_msg}"
@@ -99,7 +132,17 @@ def run_query(engine, query):
     except Exception as e:
         return None, str(e)
 
-def get_table_sample(engine, table_name, limit=5):
-    """Fetches a sample of rows from a table."""
+
+def get_table_sample(engine: Engine, table_name: str, limit: int = 5) -> tuple[pd.DataFrame | None, str | None]:
+    """Fetches a sample of rows from a table.
+    
+    Args:
+        engine: SQLAlchemy engine instance
+        table_name: Name of the table to sample
+        limit: Number of rows to retrieve
+        
+    Returns:
+        Tuple of (dataframe, error). If successful, error is None. If failed, dataframe is None.
+    """
     query = f"SELECT * FROM {table_name} LIMIT {limit}"
     return run_query(engine, query)
