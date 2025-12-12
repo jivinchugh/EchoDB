@@ -8,7 +8,25 @@ MAX_ROWS = 100
 def get_db_connection(uri):
     """Establishes and tests a database connection."""
     try:
-        engine = create_engine(uri)
+        # Add connection arguments to handle Streamlit Cloud deployment
+        connect_args = {}
+        
+        # For PostgreSQL connections (including Supabase), force IPv4
+        if uri.startswith('postgresql://') or uri.startswith('postgres://'):
+            connect_args = {
+                'connect_timeout': 10,
+                'options': '-c statement_timeout=30000'
+            }
+            # Replace hostname with IPv4 resolution to avoid IPv6 issues
+            # This helps with Streamlit Cloud deployment
+        
+        engine = create_engine(
+            uri,
+            connect_args=connect_args,
+            pool_pre_ping=True,  # Verify connections before using them
+            pool_recycle=3600,   # Recycle connections after 1 hour
+        )
+        
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
         return engine, None

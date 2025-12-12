@@ -52,7 +52,13 @@ with st.sidebar:
     api_key_label = f"{provider} API Key"
     api_key = st.text_input(api_key_label, type="password", disabled=is_connected)
     
-    db_uri = st.text_input("Database URI", value="sqlite:///test.db", disabled=is_connected)
+    # Try to get default database URI from secrets, fallback to sqlite
+    try:
+        default_db_uri = st.secrets.get("DATABASE_URI", "sqlite:///test.db")
+    except:
+        default_db_uri = "sqlite:///test.db"
+    
+    db_uri = st.text_input("Database URI", value=default_db_uri, disabled=is_connected)
     
     if not is_connected:
         if st.button("Connect"):
